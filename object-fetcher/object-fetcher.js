@@ -13,7 +13,7 @@ class Civ13Indexer {
 			const json = JSON.parse(data);
 			this.index = json.Types;
 			for (var ob in this.index) {
-				this.index[ob].index = ob;
+				this.index[ob].index = Number.parseInt(ob);
 			}
 		} catch (err) {
 			console.error(`Error loading or parsing ${this.filePath}:`, err);
@@ -25,29 +25,36 @@ class Civ13Indexer {
 		if (this.index === null) {
 			return null; // Index loading failed
 		}
-		return this.index[objectNr];
+		for (var ob in this.index) {
+			if (this.index[ob].index === objectNr) {
+				return this.index[ob];
+			}
+		}
+		return null; // Object not found
 	}
 }
 
 function count_by_type(indexes) {
 	let count = [0, 0, 0, 0, 0];
 	for (var ob in indexes) {
-		let object = indexes[ob];
+		if (indexes[ob]) {
+			let object = indexes[ob];
 
-		if (object.Path.startsWith("/obj/structure/")) {
-			count[0]++;
-		}
-		if (object.Path.startsWith("/obj/machinery/")) {
-			count[1]++;
-		}
-		if (object.Path.startsWith("/obj/item/")) {
-			count[2]++;
-		}
-		if (object.Path.startsWith("/mob/living/simple_animal/")) {
-			count[3]++;
-		}
-		if (object.Path.startsWith("/turf/")) {
-			count[4]++;
+			if (object.Path.startsWith("/obj/structure/")) {
+				count[0]++;
+			}
+			if (object.Path.startsWith("/obj/machinery/")) {
+				count[1]++;
+			}
+			if (object.Path.startsWith("/obj/item/")) {
+				count[2]++;
+			}
+			if (object.Path.startsWith("/mob/living/simple_animal/")) {
+				count[3]++;
+			}
+			if (object.Path.startsWith("/turf/")) {
+				count[4]++;
+			}
 		}
 	}
 	console.log("  Structures:", count[0]);
@@ -77,7 +84,7 @@ setTimeout(() => {
 					object.Path.startsWith("/turf/")
 				);
 			}
-			return true; // Keep objects without a Path property
+			return false; // Remove objects without a Path property
 		});
 
 		for (var ob in indexer.index) {
@@ -98,9 +105,17 @@ setTimeout(() => {
 		console.log("Cleanup complete.");
 		console.log("Total Atoms:", indexer.index.length);
 		count_by_type(indexer.index);
+
+		// Ensure the output directory exists
+		const outputDir = "./output";
+		if (!fs.existsSync(outputDir)) {
+			fs.mkdirSync(outputDir, { recursive: true });
+			console.log(`Created directory: ${outputDir}`);
+		}
+
 		// Save the cleaned index to a new JSON file
 		const cleanedData = JSON.stringify({ Types: indexer.index }, null, 2); // Format with 2-space indentation
-		fs.writeFile("./civ13_output.json", cleanedData, (err) => {
+		fs.writeFile("./output/civ13_output.json", cleanedData, (err) => {
 			if (err) {
 				console.error("Error saving data:", err);
 			} else {
