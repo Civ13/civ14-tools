@@ -17,3 +17,7 @@ Converts the `material_recipes.txt` file into JSON, so it can be further process
 ## [recipe-consolidator](https://github.com/Civ13/civ14-tools/tree/master/recipe-consolidator)
 
 Runs both `object-fetcher` and `recipe-converter`, then checks which objects listed in the .json files have been created in the `object-fetcher`'s .json files. Then it removes the ones that are orphaned (no matches).
+
+## [ss14-tileset-converter](https://github.com/Civ13/SS14TilesetConverter)
+
+This project provides a PHP library for converting images specifically for the SS14 game. It includes functionality to transform images and generate corresponding JSON metadata.
