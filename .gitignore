@@ -108,3 +108,6 @@ Windows PowerShell.lnk
 
 .vscode/
 recipe-converter/recipes/
+object-fetcher/civ13.json
+object-fetcher/civ13_output.json
+object-fetcher/civ13.js
