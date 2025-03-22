@@ -1,0 +1,26 @@
+- type: construction
+  name: Test Recipe
+  id: test_recipe
+  graph: test_recipe
+  startNode: start
+  targetNode: end
+  category: Test Category
+  description: Test Description
+  icon:
+    sprite: icons/obj/structures.dmi
+    state: test
+  objectType: construction
+
+- type: constructionGraph
+  id: test_recipe
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: end
+          steps:
+            - material: plasma
+              amount: 1
+              doAfter: 1
+    - node: end
+      entity: test_recipe

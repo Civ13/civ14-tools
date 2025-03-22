@@ -11,10 +11,7 @@ class Civ13Indexer {
 		try {
 			const data = fs.readFileSync(this.filePath, "utf8");
 			const json = JSON.parse(data);
-			this.index = json.Types;
-			for (var ob in this.index) {
-				this.index[ob].index = Number.parseInt(ob);
-			}
+			this.index = json.Types.map((obj, index) => ({ ...obj, index })); // Add index to each object
 		} catch (err) {
 			console.error(`Error loading or parsing ${this.filePath}:`, err);
 			this.index = null; // Indicate failure
@@ -25,106 +22,120 @@ class Civ13Indexer {
 		if (this.index === null) {
 			return null; // Index loading failed
 		}
-		for (var ob in this.index) {
-			if (this.index[ob].index === objectNr) {
-				return this.index[ob];
-			}
-		}
-		return null; // Object not found
+		return this.index.find((obj) => obj.index === objectNr) || null; // Find object by index
 	}
-}
 
-function count_by_type(indexes) {
-	let count = [0, 0, 0, 0, 0];
-	for (var ob in indexes) {
-		if (indexes[ob]) {
-			let object = indexes[ob];
+	filterObjectsByPath(paths) {
+		return this.index.filter((object) => {
+			if (object && object.Path) {
+				return paths.some((path) => object.Path.startsWith(path));
+			}
+			return false;
+		});
+	}
 
-			if (object.Path.startsWith("/obj/structure/")) {
-				count[0]++;
-			}
-			if (object.Path.startsWith("/obj/machinery/")) {
-				count[1]++;
-			}
-			if (object.Path.startsWith("/obj/item/")) {
-				count[2]++;
-			}
-			if (object.Path.startsWith("/mob/living/simple_animal/")) {
-				count[3]++;
-			}
-			if (object.Path.startsWith("/turf/")) {
-				count[4]++;
+	cleanObject(object) {
+		if (!object) return;
+		for (const key in object) {
+			if (
+				key.toLowerCase() === "procs" ||
+				key.toLowerCase() === "initproc"
+			) {
+				delete object[key];
 			}
 		}
 	}
-	console.log("  Structures:", count[0]);
-	console.log("  Machinery:", count[1]);
-	console.log("  Items:", count[2]);
-	console.log("  Animals:", count[3]);
-	console.log("  Turf:", count[4]);
+
+	cleanObjects() {
+		this.index.forEach((object) => this.cleanObject(object));
+	}
 }
 
-// Example usage:
+function countByType(indexes) {
+	const pathCounts = {
+		"/obj/structure/": 0,
+		"/obj/item/": 0,
+		"/mob/living/simple_animal/": 0,
+		"/turf/": 0,
+	};
+
+	for (const object of indexes) {
+		if (object && object.Path) {
+			for (const path in pathCounts) {
+				if (object.Path.startsWith(path)) {
+					pathCounts[path]++;
+					break; // Move to the next object once a match is found
+				}
+			}
+		}
+	}
+
+	console.log("Object Counts by Type:");
+	console.log("  Structures:", pathCounts["/obj/structure/"]);
+	console.log("  Items:", pathCounts["/obj/item/"]);
+	console.log("  Animals:", pathCounts["/mob/living/simple_animal/"]);
+	console.log("  Turf:", pathCounts["/turf/"]);
+}
+
+function ensureDirectoryExists(dirPath) {
+	if (!fs.existsSync(dirPath)) {
+		fs.mkdirSync(dirPath, { recursive: true });
+		console.log(`Created directory: ${dirPath}`);
+	}
+}
+
+function saveCleanedData(data, filePath) {
+	ensureDirectoryExists("./output");
+	const cleanedData = JSON.stringify({ Types: data }, null, 2);
+	fs.writeFile(filePath, cleanedData, (err) => {
+		if (err) {
+			console.error("Error saving data:", err);
+		} else {
+			console.log(`Parsed data saved to ${filePath}`);
+		}
+	});
+}
+
+// Main execution
 const indexer = new Civ13Indexer("./civ13.json");
 
-// Wait for the index to load (asynchronously) before accessing data.
 setTimeout(() => {
 	if (indexer.index) {
 		console.log("Total Atoms:", indexer.index.length);
 		console.log("Building references...");
+		indexer.cleanObjects();
 
-		// Filter the index directly to remove unwanted objects
-		indexer.index = indexer.index.filter((object) => {
-			if (object && object.Path) {
-				return (
-					object.Path.startsWith("/obj/structure/") ||
-					object.Path.startsWith("/obj/machinery/") ||
-					object.Path.startsWith("/obj/item/") ||
-					object.Path.startsWith("/mob/living/simple_animal/") ||
-					object.Path.startsWith("/turf/")
-				);
-			}
-			return false; // Remove objects without a Path property
-		});
+		const structurePaths = ["/obj/structure/"];
+		const itemPaths = ["/obj/item/"];
+		const mobPaths = ["/mob/living/simple_animal/"];
+		const turfPaths = ["/turf/"];
 
-		for (var ob in indexer.index) {
-			var object = indexer.getObject(ob);
-			if (object) {
-				//remove all vars called "Procs" and "InitProc"
-				for (const key in object) {
-					if (
-						key.toLowerCase() === "procs" ||
-						key.toLowerCase() === "initproc"
-					) {
-						delete object[key];
-					}
-				}
-			}
-		}
+		const structureObjects = indexer.filterObjectsByPath(structurePaths);
+		const itemObjects = indexer.filterObjectsByPath(itemPaths);
+		const mobObjects = indexer.filterObjectsByPath(mobPaths);
+		const turfObjects = indexer.filterObjectsByPath(turfPaths);
 
 		console.log("Cleanup complete.");
 		console.log("Total Atoms:", indexer.index.length);
-		count_by_type(indexer.index);
 
-		// Ensure the output directory exists
-		const outputDir = "./output";
-		if (!fs.existsSync(outputDir)) {
-			fs.mkdirSync(outputDir, { recursive: true });
-			console.log(`Created directory: ${outputDir}`);
-		}
+		console.log("Structure objects:");
+		countByType(structureObjects);
+		saveCleanedData(structureObjects, "./output/civ13_structure.json");
 
-		// Save the cleaned index to a new JSON file
-		const cleanedData = JSON.stringify({ Types: indexer.index }, null, 2); // Format with 2-space indentation
-		fs.writeFile("./output/civ13_output.json", cleanedData, (err) => {
-			if (err) {
-				console.error("Error saving data:", err);
-			} else {
-				console.log("Parsed data saved to civ13_output.json");
-			}
-		});
+		console.log("Item objects:");
+		countByType(itemObjects);
+		saveCleanedData(itemObjects, "./output/civ13_item.json");
+
+		console.log("Mob objects:");
+		countByType(mobObjects);
+		saveCleanedData(mobObjects, "./output/civ13_mob.json");
+
+		console.log("Turf objects:");
+		countByType(turfObjects);
+		saveCleanedData(turfObjects, "./output/civ13_turf.json");
 	} else {
 		console.error("Failed to load index.");
 	}
-}, 100); // Adjust timeout if loading takes longer.
+}, 100);
 
-module.exports = Civ13Indexer; //For use in other modules
+module.exports = Civ13Indexer;

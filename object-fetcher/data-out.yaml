@@ -1,0 +1,14 @@
+Path: /obj/item/weapon
+Parent: 2971
+Variables:
+  drawsound: null
+  warning_played: null
+  training: 0
+  flags: 32
+  name: weapon
+  icon:
+    type: 0
+    resourcePath: icons/obj/weapons.dmi
+  hitsound: swing_hit
+  item_icons: null
+index: 2972
