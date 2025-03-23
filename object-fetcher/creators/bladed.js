@@ -65,7 +65,7 @@ class BladedWeaponIndexer {
 				"civ13_sword_" + parsedName,
 				weapon.Variables.desc,
 				"weapons",
-				weapon.Variables.icon_state,
+				"Civ14/Objects/Weapons/" + weapon.Variables.icon_state + ".rsi",
 				"icon",
 				"Item"
 			);
