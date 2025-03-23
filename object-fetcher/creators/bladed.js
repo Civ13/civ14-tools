@@ -65,7 +65,9 @@ class BladedWeaponIndexer {
 				"civ13_sword_" + parsedName,
 				weapon.Variables.desc,
 				"weapons",
-				"Civ14/Objects/Weapons/" + weapon.Variables.icon_state + ".rsi",
+				"Civ14/exported/weapons/" +
+					weapon.Variables.icon_state +
+					".rsi",
 				"icon",
 				"Item"
 			);
@@ -81,7 +83,7 @@ class BladedWeaponIndexer {
 					weapon.Variables.name,
 					"civ13_sword_" + parsedName,
 					weapon.Variables.desc,
-					"Civ14/Objects/Weapons/" +
+					"Civ14/exported/weapons/" +
 						weapon.Variables.icon_state +
 						".rsi",
 					Math.round(weapon.Variables.force_divisor * 55)
