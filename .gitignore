@@ -113,3 +113,5 @@ object-fetcher/civ13_output.json
 object-fetcher/civ13.js
 object-fetcher/output/
 object-fetcher/creators/output/
+rsi-editor/output
+recipe-consolidator/consolidated_clothing/

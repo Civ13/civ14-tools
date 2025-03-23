@@ -8,7 +8,11 @@ Most of the tools are in python so you will need it installed. Some also need No
 
 ## [object-fetcher](https://github.com/Civ13/civ14-tools/tree/master/object-fetcher)
 
-Grab civ13's DMI assets and convert them to png/json using the `dmi2png-ts` tool. Then writes .atom files listing the objects it creates.
+This collects all civ entities and tries to convert them to the ss14 format.
+
+Before this, you need to compile civ13 on openDream, or use the file in [here](https://github.com/Civ13/Civ13/blob/opendream/civ13.json), placing it in this folder.
+
+Run `object-fetcher.js` using Node.JS. Run [recipe-converter](https://github.com/Civ13/civ14-tools/tree/master/recipe-converter) first!
 
 ## [recipe-converter](https://github.com/Civ13/civ14-tools/tree/master/recipe-converter)
 

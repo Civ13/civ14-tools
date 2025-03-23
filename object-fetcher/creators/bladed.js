@@ -89,8 +89,16 @@ class BladedWeaponIndexer {
 			);
 			yamlRecp += yaml.dump(recipe) + "\n" + yaml.dump(graph);
 		}
-		fs.writeFileSync("output/entities_bladed.yml", yamlStr, "utf8");
-		fs.writeFileSync("output/recipes_bladed.yml", yamlRecp, "utf8");
+		fs.writeFileSync(
+			"./../output/yml/entities_bladed.yml",
+			yamlStr,
+			"utf8"
+		);
+		fs.writeFileSync(
+			"./../output/yml/recipes_bladed.yml",
+			yamlRecp,
+			"utf8"
+		);
 		console.log(`YAML data successfully written to ${filepath}`);
 	}
 }
