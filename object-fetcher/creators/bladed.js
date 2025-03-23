@@ -74,7 +74,7 @@ class BladedWeaponIndexer {
 			let recipeData = findRecipe(weapon.Path, recipeList);
 			let graph = newGraph(
 				"civ13_sword_" + parsedName,
-				weapon.Variables.name,
+				recipeData[2],
 				recipeData[0],
 				recipeData[1]
 			);
@@ -105,18 +105,37 @@ class BladedWeaponIndexer {
 	}
 }
 function findRecipe(weaponPath, recipeList) {
-	let result = [5, 5];
+	let result = [5, 5, "Steel"];
 	for (const recipe of recipeList) {
 		if (recipe.template_name === weaponPath) {
 			result = [
 				parseInt(recipe.res_amount),
 				parseInt(recipe.time) / 1000,
+				parseMaterial(recipe.material),
 			];
 		}
 	}
 	return result;
 }
-
+function parseMaterial(material) {
+	if (material == "bone") {
+		return "Bone";
+	} else if (material == "iron") {
+		return "Iron";
+	} else if (material == "gold") {
+		return "Gold";
+	} else if (material == "steel") {
+		return "Steel";
+	} else if (material == "silver") {
+		return "Silver";
+	} else if (material == "copper") {
+		return "Copper";
+	} else if (material == "wood" || material == "woodsoft") {
+		return "WoodPlank";
+	} else if (material == "stone") {
+		return "Stone";
+	}
+}
 function convertToSS14(
 	_name = "",
 	_id = "",
