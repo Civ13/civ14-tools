@@ -96,6 +96,14 @@ if __name__ == "__main__":
                         print("Added new material {}".format(otype))
 
     print("	done")
+    # Create the 'recipes' directory if it doesn't exist
+    recipes_dir = os.path.join(outputdir, "recipes")
+    os.makedirs(recipes_dir, exist_ok=True)
+
+    # Write ALL recipes to recipes_full.json
+    with open(os.path.join(recipes_dir, "recipes_full.json"), "w") as full_recipes_file:
+        json.dump(all_recipes, full_recipes_file, indent=4)
+        print("All recipes written to recipes_full.json")
 
     for material in material_list:
         print("Writing {} recipes...".format(material))
@@ -103,10 +111,6 @@ if __name__ == "__main__":
         for recipe in all_recipes:
             if recipe["material"] == material:
                 material_recipes.append(recipe)
-
-        # Create the 'recipes' directory if it doesn't exist
-        recipes_dir = os.path.join(outputdir, "recipes")
-        os.makedirs(recipes_dir, exist_ok=True)
 
         with open(os.path.join(recipes_dir, f"{material}.json"), "w") as crafting_file:
             json.dump(material_recipes, crafting_file, indent=4)

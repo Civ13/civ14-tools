@@ -1,7 +1,7 @@
-const yaml = require("./js-yaml.min.js");
-const fs = require("fs");
+import yaml from "./js-yaml.min.js";
+import fs from "node:fs";
 
-function newGraph(_id, _material, _amount, _timer) {
+export function newGraph(_id, _material, _amount, _timer) {
 	return [
 		{
 			type: "constructionGraph",
@@ -31,7 +31,7 @@ function newGraph(_id, _material, _amount, _timer) {
 		},
 	];
 }
-function newRecipe(
+export function newRecipe(
 	name = "",
 	id = "",
 	desc = "",
@@ -58,19 +58,14 @@ function newRecipe(
 		},
 	];
 }
-let _recipe = newRecipe(
-	"Test Recipe",
-	"test_recipe",
-	"Test Description",
-	"Test Category",
-	"icons/obj/structures.dmi",
-	"test",
-	"construction"
-);
-let _graph = newGraph("test_recipe", "plasma", 1, 1);
-save(_recipe, _graph, "test_recipe.yml");
-function save(recipe, graph, filename) {
+
+export function saveRecipe(recipe, graph, filename = "recipe.yaml") {
 	let yamlStr = yaml.dump(recipe) + "\n" + yaml.dump(graph);
+	fs.writeFileSync(filename, yamlStr, "utf8");
+	console.log("Saved to " + filename);
+}
+export function saveYAML(filename = "recipes.yaml", yamlStr) {
+	yamlStr = yaml.dump(yamlStr);
 	fs.writeFileSync(filename, yamlStr, "utf8");
 	console.log("Saved to " + filename);
 }
