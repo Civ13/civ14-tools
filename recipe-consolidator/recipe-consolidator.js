@@ -4,6 +4,7 @@ const path = require("path");
 const rsiEditorRoot = path.resolve(__dirname, "..", "rsi-editor");
 const clothingDir = path.join(rsiEditorRoot, "output", "obj", "clothing");
 const mobDir = path.join(rsiEditorRoot, "output", "mob");
+const mobItemsDir = path.join(mobDir, "items"); // Added path to items folder
 const outputDir = path.join(__dirname, "consolidated_clothing");
 
 const mobSubfolders = [
@@ -40,10 +41,8 @@ function processMetaFile(metaFilePath) {
 	try {
 		const metaData = JSON.parse(fs.readFileSync(metaFilePath, "utf-8"));
 		const parentDir = path.dirname(metaFilePath);
-		// Calculate the relative path from clothingDir to the current parent directory
 		const relativePath = path.relative(clothingDir, parentDir);
 
-		// Check for either 'images' or 'states' array
 		const imageArray = metaData.images || metaData.states;
 
 		if (!imageArray || !Array.isArray(imageArray)) {
@@ -53,19 +52,16 @@ function processMetaFile(metaFilePath) {
 			return;
 		}
 
-		// Determine if we're dealing with an array of strings or objects
 		const isStatesArray =
 			metaData.states &&
 			Array.isArray(metaData.states) &&
 			typeof metaData.states[0] === "object";
 
 		for (const item of imageArray) {
-			// Extract the image file name based on the array type
 			const imageFileName = isStatesArray ? item.name + ".png" : item;
-
 			const imagePath = path.join(parentDir, imageFileName);
-
 			const imageStat = fs.statSync(imagePath);
+
 			if (!imageStat.isFile() || !imageFileName.endsWith(".png")) {
 				console.warn(
 					`Invalid image file or not a png: ${imagePath}. Skipping.`
@@ -77,12 +73,12 @@ function processMetaFile(metaFilePath) {
 				imageFileName,
 				".png"
 			);
-			// Create the output directory path, including the relative path
 			const imageOutputDir = path.join(
 				outputDir,
 				relativePath,
 				imageNameWithoutExtension
 			);
+
 			if (!fs.existsSync(imageOutputDir)) {
 				fs.mkdirSync(imageOutputDir, { recursive: true });
 			}
@@ -92,8 +88,6 @@ function processMetaFile(metaFilePath) {
 			console.log(`Copied ${imagePath} to ${newImagePath}`);
 
 			const newMetaFilePath = path.join(imageOutputDir, "meta.json");
-
-			// Create a new metaData object with only the relevant entry
 			const newMetaData = {
 				version: metaData.version,
 				license: metaData.license,
@@ -102,9 +96,9 @@ function processMetaFile(metaFilePath) {
 			};
 
 			if (isStatesArray) {
-				newMetaData.states = [item]; // Keep only the current state
+				newMetaData.states = [item];
 			} else {
-				newMetaData.images = [item]; // Keep only the current image
+				newMetaData.images = [item];
 			}
 
 			fs.writeFileSync(
@@ -132,21 +126,20 @@ function findAndCopyMobFiles() {
 		"back.rsi": "equipped-BACKPACK.png",
 	};
 
-	for (const subfolder of mobSubfolders) {
-		const mobSubfolderPath = path.join(mobDir, subfolder);
-		if (!fs.existsSync(mobSubfolderPath)) {
-			console.warn(`Mob subfolder not found: ${mobSubfolderPath}`);
-			continue;
+	// Function to handle mob files and items
+	function processMobFiles(mobFolderPath, renameFunction) {
+		if (!fs.existsSync(mobFolderPath)) {
+			console.warn(`Mob folder not found: ${mobFolderPath}`);
+			return;
 		}
 
-		const mobItems = fs.readdirSync(mobSubfolderPath);
+		const mobItems = fs.readdirSync(mobFolderPath);
 		for (const mobItem of mobItems) {
 			if (!mobItem.endsWith(".png")) continue;
 
-			const mobItemPath = path.join(mobSubfolderPath, mobItem);
+			const mobItemPath = path.join(mobFolderPath, mobItem);
 			const mobItemName = path.basename(mobItem, ".png");
 
-			// Search for matching folders in consolidated_clothing
 			const consolidatedItems = fs.readdirSync(outputDir);
 			for (const consolidatedFolderName of consolidatedItems) {
 				const consolidatedFolderPath = path.join(
@@ -158,7 +151,6 @@ function findAndCopyMobFiles() {
 				);
 				if (!consolidatedFolderStat.isDirectory()) continue;
 
-				// Iterate through subfolders inside the consolidated folder
 				const consolidatedSubfolders = fs.readdirSync(
 					consolidatedFolderPath
 				);
@@ -172,7 +164,6 @@ function findAndCopyMobFiles() {
 					);
 					if (!consolidatedSubfolderStat.isDirectory()) continue;
 
-					// Iterate through PNG files inside the consolidated subfolder
 					const consolidatedFolderItems = fs.readdirSync(
 						consolidatedSubfolderPath
 					);
@@ -184,14 +175,13 @@ function findAndCopyMobFiles() {
 							".png"
 						);
 
-						// Compare against the base name of the PNG file
 						if (
 							mobItemName.replace("-", "_") ===
 							consolidatedSubfolderName
 						) {
-							// Get the new file name from the mapping
-							const newMobItemName =
-								mobSubfolderToEquipped[subfolder];
+							const newMobItemName = renameFunction(
+								consolidatedSubfolderName
+							);
 							const newMobItemPath = path.join(
 								consolidatedSubfolderPath,
 								newMobItemName
@@ -201,9 +191,8 @@ function findAndCopyMobFiles() {
 								`Copied worn ${mobItemPath} to ${newMobItemPath}`
 							);
 
-							// Update meta.json
 							const mobMetaPath = path.join(
-								mobSubfolderPath,
+								mobFolderPath,
 								"meta.json"
 							);
 							if (fs.existsSync(mobMetaPath)) {
@@ -272,6 +261,21 @@ function findAndCopyMobFiles() {
 			}
 		}
 	}
+
+	for (const subfolder of mobSubfolders) {
+		processMobFiles(path.join(mobDir, subfolder), (folderName) => {
+			return mobSubfolderToEquipped[subfolder];
+		});
+	}
+
+	// Process items folder
+	processMobFiles(mobItemsDir, (folderName) => {
+		return folderName.startsWith("lefthand")
+			? "inhand-left.png"
+			: folderName.startsWith("righthand")
+			? "inhand-right.png"
+			: null; // Handle cases where folder name doesn't match
+	});
 }
 
 processClothingDirectory(clothingDir);
