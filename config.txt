@@ -1,4 +1,4 @@
 # put the BYOND's version of Civ full path below
 D:\GitHub\Civ13
-# put the output folder's full path below
-D:\GitHub\civ14-tools\output
+# put the Civ14's path here
+D:\GitHub\civ14
