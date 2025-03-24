@@ -4,7 +4,7 @@ const sharp = require("sharp"); // Import sharp
 
 const consolidatedClothingDir = path.resolve("consolidated_clothing");
 
-async function processConsolidatedClothing() {
+module.exports.processConsolidatedClothing = async function () {
 	// async function
 	const metaFiles = findMetaFiles(consolidatedClothingDir);
 
@@ -16,7 +16,7 @@ async function processConsolidatedClothing() {
 			console.error(`Error processing ${metaFilePath}:`, error);
 		}
 	}
-}
+};
 
 function findMetaFiles(dir) {
 	let metaFiles = [];
@@ -91,5 +91,3 @@ async function getImageSize(imagePath) {
 		return { width: 0, height: 0 };
 	}
 }
-
-module.export = processConsolidatedClothing;

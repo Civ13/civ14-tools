@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("path");
-const processConsolidatedClothing = require("./filechecker.js");
+const { processConsolidatedClothing } = require("./filechecker.js");
 
 const rsiEditorRoot = path.resolve(__dirname, "..", "rsi-editor");
 const clothingDir = path.join(rsiEditorRoot, "output", "obj", "clothing");

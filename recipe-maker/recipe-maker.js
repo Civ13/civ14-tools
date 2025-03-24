@@ -2,66 +2,135 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("./js-yaml.min.js");
 
-/**
- * Reads YAML files from the input/ folder and loads their data into an index.
- *
- * @returns {object} An index where keys are filenames (without extension) and values are the parsed YAML data.
- * @throws {Error} If the input/ folder does not exist or if there's an error parsing a YAML file.
- */
-function loadRecipes() {
-	const inputDir = path.join(__dirname, "input");
-	const recipeIndex = {};
+function removeCustomTags(yamlString) {
+	const tagRegex = /!type:\w+/g;
+	return yamlString.replace(tagRegex, "");
+}
 
-	// Check if the input directory exists
+function loadEntities() {
+	const inputDir = path.join(__dirname, "input");
+	const entityIndex = {};
+
 	if (!fs.existsSync(inputDir)) {
 		throw new Error(`Input directory not found: ${inputDir}`);
 	}
 
-	// Read all files in the input directory
 	const files = fs.readdirSync(inputDir);
-
-	// Filter for YAML files
 	const yamlFiles = files.filter(
 		(file) =>
 			path.extname(file).toLowerCase() === ".yml" ||
 			path.extname(file).toLowerCase() === ".yaml"
 	);
 
-	// Process each YAML file
 	yamlFiles.forEach((file) => {
 		const filePath = path.join(inputDir, file);
 		try {
-			// Read the file content
-			const fileContent = fs.readFileSync(filePath, "utf8");
-
-			// Parse the YAML content
-			const recipeData = yaml.load(fileContent);
-
-			// Extract the filename without extension as the key
+			let fileContent = fs.readFileSync(filePath, "utf8");
+			fileContent = removeCustomTags(fileContent);
+			const entityData = yaml.load(fileContent);
 			const filename = path.basename(file, path.extname(file));
-
-			// Add the data to the index
-			recipeIndex[filename] = recipeData;
+			entityIndex[filename] = entityData;
 		} catch (error) {
-			throw new Error(
-				`Error processing YAML file ${file}: ${error.message}`
-			);
+			console.error(`Error processing YAML file ${file}:`, error);
 		}
 	});
 
-	return recipeIndex;
+	return entityIndex;
 }
 
-// Example usage (optional):
+function generateOutputYAML(entityIndex) {
+	const outputDir = path.join(__dirname, "output");
+	if (!fs.existsSync(outputDir)) {
+		fs.mkdirSync(outputDir);
+	}
+
+	const outputData = [];
+
+	for (const filename in entityIndex) {
+		const entities = entityIndex[filename];
+
+		entities.forEach((entity) => {
+			if (entity.id && entity.name && entity.components) {
+				const constructionEntry = {
+					type: "construction",
+					name: entity.name,
+					id: entity.id,
+					graph: entity.id,
+					startNode: "start",
+					targetNode: "end",
+					category: "construction-category-misc",
+					description: entity.description,
+					icon: {},
+					objectType: "Structure",
+					placementMode: "SnapgridCenter",
+				};
+
+				const spriteComponent = entity.components.find(
+					(c) => c.type === "Sprite"
+				);
+				if (spriteComponent && spriteComponent.sprite) {
+					constructionEntry.icon.sprite = spriteComponent.sprite;
+					if (
+						spriteComponent.layers &&
+						spriteComponent.layers.length > 0
+					) {
+						constructionEntry.icon.state =
+							spriteComponent.layers[0].state || "default";
+					} else {
+						constructionEntry.icon.state = "default";
+					}
+				}
+
+				const constructionComponent = entity.components.find(
+					(c) => c.type === "Construction"
+				);
+				const material = constructionComponent?.material || "WoodPlank";
+				const amount = constructionComponent?.cost || 5;
+				const doAfter = constructionComponent?.time || 5; // Use time or default to 5
+				const constructionGraphEntry = {
+					type: "constructionGraph",
+					id: entity.id,
+					start: "start",
+					graph: [
+						{
+							node: "start",
+							edges: [
+								{
+									to: "end",
+									steps: [
+										{
+											material: material,
+											amount: amount,
+											doAfter: doAfter, // Use the doAfter value
+										},
+									],
+								},
+							],
+						},
+						{
+							node: "end",
+							entity: entity.id,
+						},
+					],
+				};
+
+				outputData.push(constructionEntry);
+				outputData.push(constructionGraphEntry);
+			}
+		});
+	}
+
+	const yamlOutput = yaml.dump(outputData);
+	const outputFile = path.join(outputDir, "output.yml");
+	fs.writeFileSync(outputFile, yamlOutput, "utf8");
+	console.log(`Successfully wrote output to ${outputFile}`);
+}
+
 try {
-	const recipes = loadRecipes();
-	console.log("Recipe Index:", recipes);
-	// You can now access recipe data like this:
-	// if (recipes.hasOwnProperty('my-recipe')) {
-	//   console.log(recipes['my-recipe']);
-	// }
+	const entities = loadEntities();
+	generateOutputYAML(entities);
 } catch (error) {
-	console.error("Error loading recipes:", error.message);
+	console.error("Error:", error.message);
 }
 
-module.exports = { loadRecipes };
+module.exports = { loadEntities, generateOutputYAML };
