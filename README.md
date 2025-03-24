@@ -2,9 +2,9 @@
 
 This repo is an assortment of tools to help the development of [Civ14](https://github.com/Civ13/civ14).
 
-Before using the tools, edit the `config.txt` file with your game's folders.
+Before using the tools, edit the `config.txt` file with your game's folders. Most of the tools are in python so you will need it installed. Some also need Node.JS.
 
-Most of the tools are in python so you will need it installed. Some also need Node.JS.
+The tools are not properly documented and might not work out of the box (you might have to tweak some files), so you might have to go with trial-and-error, sorry.
 
 ## [object-fetcher](https://github.com/Civ13/civ14-tools/tree/master/object-fetcher)
 
@@ -18,9 +18,9 @@ Run `object-fetcher.js` using Node.JS. Run [recipe-converter](https://github.com
 
 Converts the `material_recipes.txt` file into JSON, so it can be further processed.
 
-## [recipe-consolidator](https://github.com/Civ13/civ14-tools/tree/master/recipe-consolidator)
+## [sprite-consolidator](https://github.com/Civ13/civ14-tools/tree/master/sprite-consolidator)
 
-Runs both `object-fetcher` and `recipe-converter`, then checks which objects listed in the .json files have been created in the `object-fetcher`'s .json files. Then it removes the ones that are orphaned (no matches).
+Takes the output from `rsi-editor` and tries to pair the sprites and place them in separate folders, including equipped sprites and inhands.
 
 ## [ss14-tileset-converter](https://github.com/Civ13/SS14TilesetConverter)
 

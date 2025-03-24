@@ -1,5 +1,6 @@
-const fs = require("fs");
+const fs = require("node:fs");
 const path = require("path");
+const processConsolidatedClothing = require("./filechecker.js");
 
 const rsiEditorRoot = path.resolve(__dirname, "..", "rsi-editor");
 const clothingDir = path.join(rsiEditorRoot, "output", "obj", "clothing");
@@ -133,16 +134,17 @@ function processMetaFile(metaFilePath) {
 			if (!fs.existsSync(imageOutputDir)) {
 				fs.mkdirSync(imageOutputDir, { recursive: true });
 			}
-
-			const newImagePath = path.join(imageOutputDir, imageFileName);
+			const newImagePath2 = path.join(imageOutputDir, imageFileName);
+			const newImagePath = path.join(imageOutputDir, "icon.png");
 			fs.copyFileSync(imagePath, newImagePath);
+			fs.copyFileSync(imagePath, newImagePath2);
 			console.log(`Copied ${imagePath} to ${newImagePath}`);
 
 			const newMetaFilePath = path.join(imageOutputDir, "meta.json");
 			const newMetaData = {
 				version: metaData.version,
-				license: metaData.license,
-				copyright: metaData.copyright,
+				license: "AGPL-3.0",
+				copyright: "Exported from https://github.com/civ13/civ13",
 				size: metaData.size,
 			};
 
@@ -183,7 +185,6 @@ function findAndCopyMobFiles() {
 			console.warn(`Mob folder not found: ${mobFolderPath}`);
 			return;
 		}
-
 		const mobItems = fs.readdirSync(mobFolderPath);
 		for (const mobItem of mobItems) {
 			const mobItemPath = path.join(mobFolderPath, mobItem);
@@ -416,4 +417,5 @@ function processInhandSprites() {
 processClothingDirectory(clothingDir);
 findAndCopyMobFiles();
 processInhandSprites();
+processConsolidatedClothing();
 console.log("Clothing and Mob consolidation complete.");
