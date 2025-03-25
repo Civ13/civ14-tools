@@ -27,6 +27,10 @@ Takes the output from `rsi-editor` and tries to pair the sprites and place them 
 Reads civ14's ymls and generates crafting recipes for them.
 Place the input files in `input/`
 
+## [map-converter](https://github.com/Civ13/civ14-tools/tree/master/map-converter)
+
+Converts an image into a Civ14 Nomads' map. Colors must match the indexed color list, and be 1 pixel per tile.
+
 ## [ss14-tileset-converter](https://github.com/Civ13/SS14TilesetConverter)
 
 This project provides a PHP library for converting images specifically for the SS14 game. It includes functionality to transform images and generate corresponding JSON metadata.
