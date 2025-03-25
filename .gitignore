@@ -120,3 +120,4 @@ sprite-consolidator/consolidated/
 recipe-maker/input/
 recipe-maker/output/
 map-converter/output.json
+map-converter/output.yml
