@@ -1,25 +1,40 @@
 /**
- * Converts an image to a text-based representation using a limited color palette and saves the output as JSON.
+ * Converts an image to a tile-based map representation and saves the output as JSON.
  *
  * @param {string} imagePath - The path to the image file.
  * @param {string} outputJsonPath - The path to save the output JSON file.
- * @param {number} [maxWidth=1000] - The maximum width of the output text representation.
- * @param {number} [maxHeight=1000] - The maximum height of the output text representation.
+ * @param {number} [maxWidth=1000] - The maximum width of the output map.
+ * @param {number} [maxHeight=1000] - The maximum height of the output map.
  * @returns {Promise<void>} - A promise that resolves when the JSON file is saved.
  * @throws {Error} - If there's an error loading, processing the image, or saving the JSON file.
  */
 const fs = require("fs").promises;
-const { createCanvas, loadImage } = require("canvas"); // Import from canvas library
+const { createCanvas, loadImage } = require("canvas");
+
+// Use numeric keys for globalEntityMap
 const globalEntityMap = {
-	a: "DeepWater",
-	b: "ShallowWater",
-	c: "Snow",
-	d: "Sand",
-	e: "Dirt",
-	f: "RockWall",
-	g: "Grass",
-	h: "DryDirt",
+	0: "DeepWater",
+	1: "ShallowWater",
+	2: "Snow",
+	3: "Sand",
+	4: "Dirt",
+	5: "RockWall",
+	6: "Grass",
+	7: "DryDirt",
 };
+
+// colorMap should also use numeric keys
+const colorMap = {
+	"#5a94c0": 0,
+	"#9aada9": 1,
+	"#f3f1ec": 2,
+	"#bdb298": 3,
+	"#453623": 4,
+	"#646464": 5,
+	"#1e750d": 6,
+	"#6a5632": 7,
+};
+
 async function imageToMapAndSaveJson(
 	imagePath,
 	outputJsonPath,
@@ -27,7 +42,7 @@ async function imageToMapAndSaveJson(
 	maxHeight = 1000
 ) {
 	try {
-		const img = await loadImage(imagePath); // Use loadImage from canvas
+		const img = await loadImage(imagePath);
 
 		// Calculate scaled dimensions
 		let width = img.width;
@@ -43,11 +58,9 @@ async function imageToMapAndSaveJson(
 		width = Math.floor(width);
 		height = Math.floor(height);
 
-		const canvas = createCanvas(width, height); // Use createCanvas from canvas
+		const canvas = createCanvas(width, height);
 		const ctx = canvas.getContext("2d");
-
 		ctx.drawImage(img, 0, 0, width, height);
-
 		const imageData = ctx.getImageData(0, 0, width, height);
 		const pixels = imageData.data;
 
@@ -56,27 +69,25 @@ async function imageToMapAndSaveJson(
 			const r = pixels[i];
 			const g = pixels[i + 1];
 			const b = pixels[i + 2];
-			const hexColor = rgbToHex(r, g, b);
-			uniqueColors.add(hexColor);
+			uniqueColors.add(rgbToHex(r, g, b));
 		}
 
-		const colorMap = createColorMap(Array.from(uniqueColors));
-		let text = [];
+		const tileMap = {}; // Changed to an object
+
 		for (let y = 0; y < height; y++) {
-			text[y] = "";
 			for (let x = 0; x < width; x++) {
 				const index = (y * width + x) * 4;
 				const r = pixels[index];
 				const g = pixels[index + 1];
 				const b = pixels[index + 2];
 				const hexColor = rgbToHex(r, g, b);
-				text[y] += colorMap[hexColor];
+				const tileId = colorMap[hexColor]; // Get numeric tile ID
+				tileMap[`(${x},${y})`] = { tile: tileId };
 			}
 		}
 
 		const jsonData = {
-			text: text,
-			colorMap: colorMap,
+			tileMap: tileMap, // Changed to tileMap
 			entityMap: globalEntityMap,
 		};
 
@@ -107,23 +118,10 @@ function rgbToHex(r, g, b) {
  * @returns {{ [key: string]: string }} - A map where keys are hex colors and values are characters.
  * @throws {Error} - If there are more than 32 unique colors.
  */
-function createColorMap(colors) {
-	if (colors.length > 32) {
-		throw new Error("Too many unique colors. Maximum is 32.");
-	}
 
-	const characters = "abcdefghijklmnopqrstuvwxyz012345";
-	const colorMap = {};
-	for (let i = 0; i < colors.length; i++) {
-		colorMap[colors[i]] = characters[i];
-	}
-	return colorMap;
-}
-
-// Example usage (Node.js):
 (async () => {
 	try {
-		await imageToMapAndSaveJson("test.png", "output.json", 1000, 1000); // Replace with your image path and desired output path
+		await imageToMapAndSaveJson("test.png", "output.json", 1000, 1000);
 	} catch (error) {
 		console.error(error);
 	}
