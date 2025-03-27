@@ -2,6 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const yaml = require("../js-yaml.min.js");
 const { newRecipe, newGraph } = require("../recipe_yamlifier.js");
+let usedIds = {}; // Keep track of used IDs
 
 const recipeList = JSON.parse(
 	fs.readFileSync(
@@ -83,18 +84,27 @@ class ClothingIndexer {
 			}
 			let parsedName = clothing.Variables.name.replace(/[\s-]/g, "_");
 			parsedName = parsedName.replace(/[\s']/g, "");
+			let uniqueId = "civ13_uniform_" + parsedName;
+			let count = 1;
+			while (usedIds[uniqueId]) {
+				uniqueId = `${uniqueId}_${count}`;
+				count++;
+			}
+			usedIds[uniqueId] = true; // Mark the ID as used
+
 			let recipe = newRecipe(
 				clothing.Variables.name,
-				"civ13_uniform_" + parsedName,
+				uniqueId,
 				clothing.Variables.desc,
 				"clothing",
 				"Civ14/Clothing/exported/" + iconState + ".rsi",
 				"icon",
 				"Item"
 			);
+
 			let recipeData = findRecipe(clothing.Path, recipeList);
 			let graph = newGraph(
-				"civ13_uniform_" + parsedName,
+				uniqueId,
 				recipeData[2],
 				recipeData[0],
 				recipeData[1]
@@ -132,6 +142,7 @@ class ClothingIndexer {
 					}
 				}
 			}
+
 			yamlStr += yaml.dump(
 				convertToSS14(
 					clothing.Variables.name,
@@ -140,7 +151,8 @@ class ClothingIndexer {
 					"Civ14/Clothing/exported/uniforms/" + iconState + ".rsi",
 					Math.round(clothing.Variables.force_divisor * 55),
 					armor,
-					recipeData
+					recipeData,
+					uniqueId
 				)
 			);
 			yamlRecp += yaml.dump(recipe) + "\n" + yaml.dump(graph);
@@ -164,7 +176,7 @@ function findRecipe(weaponPath, recipeList) {
 		if (recipe.template_name === weaponPath) {
 			result = [
 				parseInt(recipe.res_amount),
-				parseInt(recipe.time) / 1000,
+				Math.round(parseInt(recipe.time) / 1000),
 				parseMaterial(recipe.material),
 			];
 		}
@@ -210,7 +222,8 @@ function convertToSS14(
 		Heat: 1,
 		Radiation: 1,
 	},
-	recipeData = [5, 5, "Cloth"]
+	recipeData = [5, 5, "Cloth"],
+	uniqueId
 ) {
 	let new_armor = {};
 	if (_armor.Blunt != 1) {
@@ -231,12 +244,13 @@ function convertToSS14(
 	if (_armor.Radiation != 1) {
 		new_armor.Radiation = _armor.Radiation;
 	}
+
 	return [
 		{
 			type: "entity",
 			name: _name,
 			parent: "ClothingUniformBase",
-			id: _id,
+			id: uniqueId,
 			description: _desc,
 			components: [
 				{
@@ -255,7 +269,7 @@ function convertToSS14(
 				},
 				{
 					type: "Construction",
-					graph: _id,
+					graph: uniqueId,
 					node: "end",
 					cost: recipeData[0],
 					material: recipeData[2],
