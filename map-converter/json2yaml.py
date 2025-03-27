@@ -10,8 +10,8 @@ import os
 # -----------------------------------------------------------------------------
 # Mapeamento baseado no tileset fornecido
 TILEMAP = {
-    0: "FloorWaterDeepEntity",
-    1: "FloorWaterEntity",
+    # 0: "FloorWaterDeepEntity",
+    # 1: "FloorWaterEntity",
     2: "FloorSnow",
     3: "FloorDesert",
     4: "FloorDirtRock",
@@ -19,7 +19,7 @@ TILEMAP = {
     6: "FloorGrass",
     7: "FloorPlanetDryDirt",
     8: "FloorIce",
-    9: "FloorWaterSwampEntity",
+    # 9: "FloorWaterSwampEntity",
     10: "DryGrass",
 }
 TILEMAP_REVERSE = {v: k for k, v in TILEMAP.items()}
