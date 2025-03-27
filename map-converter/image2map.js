@@ -23,7 +23,7 @@ const globalEntityMap = {
 	7: "FloorPlanetDryDirt",
 	8: "FloorIce",
 	9: "FloorWaterSwampEntity",
-	10: "DryGrass",
+	10: "FloorGrassDry",
 };
 
 // colorMap should also use numeric keys
