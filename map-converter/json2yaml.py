@@ -14,12 +14,16 @@ TILEMAP = {
     1: "FloorWaterEntity",
     2: "FloorSnow",
     3: "FloorDesert",
-    4: "FloorDirt",
+    4: "FloorDirtRock",
     5: "WallRock",
-    6: "FloorGrassDark",
-    7: "FloorPlanetDryDirt"
+    6: "FloorGrass",
+    7: "FloorPlanetDryDirt",
+    8: "FloorIce",
+    9: "FloorWaterSwampEntity",
+    10: "DryGrass",
 }
 TILEMAP_REVERSE = {v: k for k, v in TILEMAP.items()}
+
 
 # -----------------------------------------------------------------------------
 # Funções Auxiliares
@@ -33,9 +37,10 @@ def encode_tiles(tile_map):
             flags = 0
             variant = 0
             tile_bytes.extend(struct.pack("<I", tile_id))  # 4 bytes tile_id
-            tile_bytes.append(flags)                       # 1 byte flag
-            tile_bytes.append(variant)                     # 1 byte variant
-    return base64.b64encode(tile_bytes).decode('utf-8')
+            tile_bytes.append(flags)  # 1 byte flag
+            tile_bytes.append(variant)  # 1 byte variant
+    return base64.b64encode(tile_bytes).decode("utf-8")
+
 
 def generate_atmosphere_tiles(width, height, chunk_size):
     """Gera os tiles de atmosfera com base no tamanho do mapa."""
@@ -50,20 +55,22 @@ def generate_atmosphere_tiles(width, height, chunk_size):
                 tiles[f"{x},{y}"] = {1: 65535}
     return tiles
 
+
 # Definir uniqueMixes para atmosfera
 unique_mixes = [
     {
         "volume": 2500,
         "immutable": True,
         "temperature": 293.15,
-        "moles": [21.82478, 82.10312, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        "moles": [21.82478, 82.10312, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     },
     {
         "volume": 2500,
         "temperature": 293.15,
-        "moles": [21.824879, 82.10312, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    }
+        "moles": [21.824879, 82.10312, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    },
 ]
+
 
 def generate_main_entities(tile_map, chunk_size=16):
     """Gera as entidades principais, incluindo os chunks do mapa e a atmosfera."""
@@ -72,21 +79,21 @@ def generate_main_entities(tile_map, chunk_size=16):
     for cy in range(0, h, chunk_size):
         for cx in range(0, w, chunk_size):
             chunk_key = f"{cx//chunk_size},{cy//chunk_size}"
-            chunk_tiles = tile_map[cy:cy+chunk_size, cx:cx+chunk_size]
+            chunk_tiles = tile_map[cy : cy + chunk_size, cx : cx + chunk_size]
             # Preenche chunks incompletos nas bordas
             if chunk_tiles.shape[0] < chunk_size or chunk_tiles.shape[1] < chunk_size:
                 full_chunk = np.zeros((chunk_size, chunk_size), dtype=np.int32)
-                full_chunk[:chunk_tiles.shape[0], :chunk_tiles.shape[1]] = chunk_tiles
+                full_chunk[: chunk_tiles.shape[0], : chunk_tiles.shape[1]] = chunk_tiles
                 chunk_tiles = full_chunk
             chunks[chunk_key] = {
                 "ind": f"{cx//chunk_size},{cy//chunk_size}",
                 "tiles": encode_tiles(chunk_tiles),
-                "version": 6
+                "version": 6,
             }
-    
+
     atmosphere_chunk_size = 4
     atmosphere_tiles = generate_atmosphere_tiles(w, h, atmosphere_chunk_size)
-    
+
     main = {
         "proto": "",
         "entities": [
@@ -102,8 +109,8 @@ def generate_main_entities(tile_map, chunk_size=16):
                     {"type": "GridTree"},
                     {"type": "MovedGrids"},
                     {"type": "Broadphase"},
-                    {"type": "OccluderTree"}
-                ]
+                    {"type": "OccluderTree"},
+                ],
             },
             {
                 "uid": 2,
@@ -112,12 +119,13 @@ def generate_main_entities(tile_map, chunk_size=16):
                     {"type": "Transform", "parent": 1, "pos": "0,0"},
                     {"type": "MapGrid", "chunks": chunks},
                     {"type": "Broadphase"},
-                    {"type": "Physics",
-                     "angularDamping": 0.05,
-                     "bodyStatus": "InAir",
-                     "bodyType": "Dynamic",
-                     "fixedRotation": True,
-                     "linearDamping": 0.05
+                    {
+                        "type": "Physics",
+                        "angularDamping": 0.05,
+                        "bodyStatus": "InAir",
+                        "bodyType": "Dynamic",
+                        "fixedRotation": True,
+                        "linearDamping": 0.05,
                     },
                     {"type": "Fixtures", "fixtures": {}},
                     {"type": "OccluderTree"},
@@ -126,40 +134,52 @@ def generate_main_entities(tile_map, chunk_size=16):
                     {"type": "SunShadow"},
                     {"type": "SunShadowCycle"},
                     {"type": "GridPathfinding"},
-                    {"type": "Gravity",
-                     "gravityShakeSound": { "!type:SoundPathSpecifier": {"path": "/Audio/Effects/alert.ogg"} },
-                     "inherent": True,
-                     "enabled": True
+                    {
+                        "type": "Gravity",
+                        "gravityShakeSound": {
+                            "!type:SoundPathSpecifier": {
+                                "path": "/Audio/Effects/alert.ogg"
+                            }
+                        },
+                        "inherent": True,
+                        "enabled": True,
                     },
                     {"type": "BecomesStation", "id": "Nomads"},
-                    {"type": "DecalGrid", "chunkCollection": {"version": 2, "nodes": []}},
+                    {
+                        "type": "DecalGrid",
+                        "chunkCollection": {"version": 2, "nodes": []},
+                    },
                     {
                         "type": "GridAtmosphere",
                         "version": 2,
                         "data": {
                             "tiles": atmosphere_tiles,
                             "uniqueMixes": unique_mixes,
-                            "chunkSize": atmosphere_chunk_size
-                        }
+                            "chunkSize": atmosphere_chunk_size,
+                        },
                     },
                     {"type": "GasTileOverlay"},
-                    {"type": "RadiationGridResistance"}
-                ]
-            }
-        ]
+                    {"type": "RadiationGridResistance"},
+                ],
+            },
+        ],
     }
     return main
+
 
 # -----------------------------------------------------------------------------
 # Geração de Spawn Points
 # -----------------------------------------------------------------------------
 global_uid = 3
+
+
 def next_uid():
     """Gera um UID único para cada entidade."""
     global global_uid
     uid = global_uid
     global_uid += 1
     return uid
+
 
 def generate_spawn_points(tile_map, num_points=2):
     """Gera entidades SpawnPointNomads no centro do mapa."""
@@ -170,13 +190,16 @@ def generate_spawn_points(tile_map, num_points=2):
     for i in range(num_points):
         pos_x = center_x - 2.5
         pos_y = center_y - 0.5 - i
-        spawn_points.append({
-            "uid": next_uid(),
-            "components": [
-                {"type": "Transform", "parent": 2, "pos": f"{pos_x},{pos_y}"}
-            ]
-        })
+        spawn_points.append(
+            {
+                "uid": next_uid(),
+                "components": [
+                    {"type": "Transform", "parent": 2, "pos": f"{pos_x},{pos_y}"}
+                ],
+            }
+        )
     return {"proto": "SpawnPointNomads", "entities": spawn_points}
+
 
 # -----------------------------------------------------------------------------
 # Salvar YAML
@@ -190,7 +213,10 @@ def represent_sound_path_specifier(dumper, data):
                 return dumper.represent_mapping(tag, value)
     return dumper.represent_dict(data)
 
-def save_map_to_yaml(tile_map, output_dir, filename="nomads_from_json.yml", chunk_size=16):
+
+def save_map_to_yaml(
+    tile_map, output_dir, filename="nomads_from_json.yml", chunk_size=16
+):
     """Salva o mapa gerado em um arquivo YAML no diretório especificado."""
     main_entities = generate_main_entities(tile_map, chunk_size)
     spawn_points = generate_spawn_points(tile_map)
@@ -204,34 +230,37 @@ def save_map_to_yaml(tile_map, output_dir, filename="nomads_from_json.yml", chun
             "forkId": "",
             "forkVersion": "",
             "time": "03/23/2025 18:21:23",
-            "entityCount": count
+            "entityCount": count,
         },
         "maps": [1],
         "grids": [2],
         "orphans": [],
         "nullspace": [],
         "tilemap": TILEMAP,
-        "entities": all_entities
+        "entities": all_entities,
     }
     yaml.add_representer(dict, represent_sound_path_specifier)
     output_path = os.path.join(output_dir, filename)
-    with open(output_path, 'w') as outfile:
+    with open(output_path, "w") as outfile:
         yaml.dump(map_data, outfile, default_flow_style=False, sort_keys=False)
+
 
 # -----------------------------------------------------------------------------
 # Execução
 # -----------------------------------------------------------------------------
 # Determina o diretório do script
 script_dir = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(script_dir, "tilemap_output.json")
+json_path = os.path.join(script_dir, "output.json")
 
 # Lê o arquivo JSON
-with open(json_path, 'r') as f:
+with open(json_path, "r") as f:
     data = json.load(f)
-tilemap_data = data['tileMap']
+tilemap_data = data["tileMap"]
 
 # Extrai as dimensões do tilemap
-positions = [eval(pos) for pos in tilemap_data.keys()]  # Converte "(x,y)" para tupla (x, y)
+positions = [
+    eval(pos) for pos in tilemap_data.keys()
+]  # Converte "(x,y)" para tupla (x, y)
 max_x = max(pos[0] for pos in positions)
 max_y = max(pos[1] for pos in positions)
 width = max_x + 1
@@ -241,12 +270,12 @@ height = max_y + 1
 tile_map = np.zeros((height, width), dtype=np.int32)
 for pos_str, tile_info in tilemap_data.items():
     x, y = eval(pos_str)
-    tile_id = tile_info['tile']
+    tile_id = tile_info["tile"]
     # Os IDs do JSON correspondem diretamente ao TILEMAP
     tile_map[y, x] = tile_id
 
 # Define o diretório de saída
-output_dir = os.path.join(script_dir, "Resources", "Maps", "civ")
+output_dir = os.path.join(script_dir, "output")
 os.makedirs(output_dir, exist_ok=True)
 
 # Salva o mapa em YAML

@@ -18,7 +18,7 @@ const globalEntityMap = {
 	2: "FloorSnow",
 	3: "FloorDesert",
 	4: "FloorDirt",
-	5: "WallRock",
+	5: "FloorDirtRock",
 	6: "FloorGrass",
 	7: "FloorPlanetDryDirt",
 	8: "FloorIce",
@@ -88,8 +88,8 @@ async function imageToMapAndSaveJson(
 				const b = pixels[index + 2];
 				const hexColor = rgbToHex(r, g, b);
 				const tileId = colorMap[hexColor]; // Get numeric tile ID
-				//deep water, shallow water, ice = sand
-				if (tileId == 0 || tileId == 1 || tileId == 1) {
+				//deep water, shallow water = sand
+				if (tileId == 0 || tileId == 1) {
 					tileMap[`(${x},${y})`] = {
 						tile: 3,
 						entities: [globalEntityMap[tileId]],
