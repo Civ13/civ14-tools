@@ -59,15 +59,36 @@ class ClothingIndexer {
 			if (!clothing.Variables || !clothing.Variables.name) {
 				continue;
 			}
+			let iconState = clothing.Variables.icon_state;
+			if (!clothing.Variables.icon_state) {
+				console.log(
+					"No icon state found for",
+					clothing.Variables.name,
+					", checking parent " + clothing.Parent
+				);
+
+				for (const parentClothing in this.index) {
+					const parent = this.index[parentClothing];
+					if (parent.index === clothing.Parent) {
+						iconState = parent.Variables.icon_state;
+						console.log(
+							"Using parent icon state for ",
+							clothing.Variables.name +
+								" - " +
+								parent.Variables.icon_state
+						);
+						break;
+					}
+				}
+			}
 			let parsedName = clothing.Variables.name.replace(/[\s-]/g, "_");
+			parsedName = parsedName.replace(/[\s']/g, "");
 			let recipe = newRecipe(
 				clothing.Variables.name,
 				"civ13_uniform_" + parsedName,
 				clothing.Variables.desc,
 				"clothing",
-				"Civ14/Clothing/exported/" +
-					clothing.Variables.icon_state +
-					".rsi",
+				"Civ14/Clothing/exported/" + iconState + ".rsi",
 				"icon",
 				"Item"
 			);
@@ -79,32 +100,34 @@ class ClothingIndexer {
 				recipeData[1]
 			);
 			let armor = {
-				blunt: 0,
-				slash: 0,
-				piercing: 0,
-				arrow: 0,
-				heat: 0,
-				radiation: 0,
+				Blunt: 0,
+				Slash: 0,
+				Piercing: 0,
+				Arrow: 0,
+				Heat: 0,
+				Radiation: 0,
 			};
 			if (clothing.Variables.armor) {
-				armor.blunt = clothing.Variables.armor.melee;
-				armor.slash = clothing.Variables.armor.melee;
-				armor.piercing = clothing.Variables.armor.gun;
-				armor.arrow = clothing.Variables.armor.arrow;
-				armor.heat = clothing.Variables.armor.energy;
-				armor.radiation = clothing.Variables.armor.rad;
-			} else if (clothing.parent) {
+				armor.Blunt = 1 - clothing.Variables.armor.melee / 100;
+				armor.Slash = 1 - clothing.Variables.armor.melee / 100;
+				armor.Piercing = 1 - clothing.Variables.armor.gun / 100;
+				armor.Arrow = 1 - clothing.Variables.armor.arrow / 100;
+				armor.Heat = 1 - clothing.Variables.armor.energy / 100;
+				armor.Radiation = 1 - clothing.Variables.armor.rad / 100;
+			} else if (clothing.Parent) {
 				for (const parentClothing in this.index) {
+					const parent = this.index[parentClothing];
 					if (
-						parentClothing.Path === clothing.parent &&
-						parentClothing.Variables.armor
+						parent.index === clothing.Parent &&
+						parent.Variables &&
+						parent.Variables.armor
 					) {
-						armor.blunt = parentClothing.Variables.armor.melee;
-						armor.slash = parentClothing.Variables.armor.melee;
-						armor.piercing = parentClothing.Variables.armor.gun;
-						armor.arrow = parentClothing.Variables.armor.arrow;
-						armor.heat = parentClothing.Variables.armor.energy;
-						armor.radiation = parentClothing.Variables.armor.rad;
+						armor.Blunt = 1 - parent.Variables.armor.melee / 100;
+						armor.Slash = 1 - parent.Variables.armor.melee / 100;
+						armor.Piercing = 1 - parent.Variables.armor.gun / 100;
+						armor.Arrow = 1 - parent.Variables.armor.arrow / 100;
+						armor.Heat = 1 - parent.Variables.armor.energy / 100;
+						armor.Radiation = 1 - parent.Variables.armor.rad / 100;
 						break;
 					}
 				}
@@ -114,11 +137,10 @@ class ClothingIndexer {
 					clothing.Variables.name,
 					"civ13_uniform_" + parsedName,
 					clothing.Variables.desc,
-					"Civ14/Clothing/exported/uniforms/" +
-						clothing.Variables.icon_state +
-						".rsi",
+					"Civ14/Clothing/exported/uniforms/" + iconState + ".rsi",
 					Math.round(clothing.Variables.force_divisor * 55),
-					armor
+					armor,
+					recipeData
 				)
 			);
 			yamlRecp += yaml.dump(recipe) + "\n" + yaml.dump(graph);
@@ -181,14 +203,34 @@ function convertToSS14(
 	_sprite = "",
 	_dmg = "",
 	_armor = {
-		blunt: 0,
-		slash: 0,
-		piercing: 0,
-		arrow: 0,
-		heat: 0,
-		radiation: 0,
-	}
+		Blunt: 1,
+		Slash: 1,
+		Piercing: 1,
+		Arrow: 1,
+		Heat: 1,
+		Radiation: 1,
+	},
+	recipeData = [5, 5, "Cloth"]
 ) {
+	let new_armor = {};
+	if (_armor.Blunt != 1) {
+		new_armor.Blunt = _armor.Blunt;
+	}
+	if (_armor.Slash != 1) {
+		new_armor.Slash = _armor.Slash;
+	}
+	if (_armor.Piercing != 1) {
+		new_armor.Piercing = _armor.Piercing;
+	}
+	if (_armor.Arrow != 1) {
+		new_armor.Arrow = _armor.Arrow;
+	}
+	if (_armor.Heat != 1) {
+		new_armor.Heat = _armor.Heat;
+	}
+	if (_armor.Radiation != 1) {
+		new_armor.Radiation = _armor.Radiation;
+	}
 	return [
 		{
 			type: "entity",
@@ -208,15 +250,16 @@ function convertToSS14(
 				{
 					type: "Armor",
 					modifiers: {
-						coefficients: {
-							Blunt: _armor.blunt,
-							Slash: _armor.slash,
-							Piercing: _armor.piercing,
-							Arrow: _armor.arrow,
-							Heat: _armor.heat,
-							Radiation: _armor.radiation,
-						},
+						coefficients: new_armor,
 					},
+				},
+				{
+					type: "Construction",
+					graph: _id,
+					node: "end",
+					cost: recipeData[0],
+					material: recipeData[2],
+					time: recipeData[1],
 				},
 			],
 		},
@@ -225,7 +268,7 @@ function convertToSS14(
 
 // Example usage:
 const indexer = new ClothingIndexer(
-	path.join(__dirname, "./../output/civ13_item.json")
+	path.join(__dirname, "./../output/civ13_item_merged.json")
 );
 
 // Wait for the index to load before accessing data.  No timeout needed since it's synchronous.
