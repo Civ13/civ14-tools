@@ -55,6 +55,8 @@ export function newRecipe(
 				state: state,
 			},
 			objectType: objtype,
+			agemin: 8,
+			agemax: 8,
 		},
 	];
 }

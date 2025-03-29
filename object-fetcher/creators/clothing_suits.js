@@ -96,7 +96,7 @@ class ClothingIndexer {
 				clothing.Variables.name,
 				uniqueId,
 				clothing.Variables.desc,
-				"clothing",
+				"construction-category-clothing",
 				"Civ14/Clothing/exported/suits/" + iconState + ".rsi",
 				"icon",
 				"Item"
@@ -249,7 +249,7 @@ function convertToSS14(
 		{
 			type: "entity",
 			name: _name,
-			parent: "ClothingsuitBase",
+			parent: "ClothingSuitBase",
 			id: uniqueId,
 			description: _desc,
 			components: [

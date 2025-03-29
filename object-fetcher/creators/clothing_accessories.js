@@ -38,7 +38,7 @@ class ClothingIndexer {
 		const Clothings = {};
 
 		jsonData.Types.forEach((clothing) => {
-			if (clothing.Path.startsWith("/obj/item/clothing/under/")) {
+			if (clothing.Path.startsWith("/obj/item/clothing/accessory/")) {
 				const pathParts = clothing.Path.split("/");
 				const clothingName = pathParts[pathParts.length - 1];
 				Clothings[clothingName] = clothing;
@@ -84,20 +84,27 @@ class ClothingIndexer {
 			}
 			let parsedName = clothing.Variables.name.replace(/[\s-]/g, "_");
 			parsedName = parsedName.replace(/[\s']/g, "");
-			let uniqueId = "civ13_uniform_" + parsedName;
+			let uniqueId = "civ13_accessory_" + parsedName;
 			let count = 1;
 			while (usedIds[uniqueId]) {
 				uniqueId = `${uniqueId}_${count}`;
 				count++;
 			}
 			usedIds[uniqueId] = true; // Mark the ID as used
-
+			let cats = "Civ14/Clothing/exported/ties/";
+			if (
+				clothing.Path.startsWith("/obj/item/clothing/accessory/medal/")
+			) {
+				cats = "Civ14/Clothing/exported/badges/";
+			} else {
+				cats = "Civ14/Clothing/exported/ties/";
+			}
 			let recipe = newRecipe(
 				clothing.Variables.name,
 				uniqueId,
 				clothing.Variables.desc,
 				"construction-category-clothing",
-				"Civ14/Clothing/exported/uniforms/" + iconState + ".rsi",
+				cats + iconState + ".rsi",
 				"icon",
 				"Item"
 			);
@@ -146,9 +153,9 @@ class ClothingIndexer {
 			yamlStr += yaml.dump(
 				convertToSS14(
 					clothing.Variables.name,
-					"civ13_uniform_" + parsedName,
+					"civ13_accessory_" + parsedName,
 					clothing.Variables.desc,
-					"Civ14/Clothing/exported/uniforms/" + iconState + ".rsi",
+					cats + iconState + ".rsi",
 					Math.round(clothing.Variables.force_divisor * 55),
 					armor,
 					recipeData,
@@ -158,12 +165,12 @@ class ClothingIndexer {
 			yamlRecp += yaml.dump(recipe) + "\n" + yaml.dump(graph);
 		}
 		fs.writeFileSync(
-			"./../output/yml/entities_clothing_uniform.yml",
+			"./../output/yml/entities_clothing_accessories.yml",
 			yamlStr,
 			"utf8"
 		);
 		fs.writeFileSync(
-			"./../output/yml/recipes_clothing_uniform.yml",
+			"./../output/yml/recipes_clothing_accessories.yml",
 			yamlRecp,
 			"utf8"
 		);
@@ -249,7 +256,7 @@ function convertToSS14(
 		{
 			type: "entity",
 			name: _name,
-			parent: "ClothingUniformBase",
+			parent: "ClothingEyesGlasses",
 			id: uniqueId,
 			description: _desc,
 			components: [

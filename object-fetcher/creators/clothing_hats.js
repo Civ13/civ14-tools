@@ -96,7 +96,7 @@ class ClothingIndexer {
 				clothing.Variables.name,
 				uniqueId,
 				clothing.Variables.desc,
-				"clothing",
+				"construction-category-clothing",
 				"Civ14/Clothing/exported/hats/" + iconState + ".rsi",
 				"icon",
 				"Item"
