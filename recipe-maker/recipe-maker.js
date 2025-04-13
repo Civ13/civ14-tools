@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const yaml = require("./js-yaml.min.js");
+const yaml = require("js-yaml");
 
 function removeCustomTags(yamlString) {
 	const tagRegex = /!type:\w+/g;
@@ -63,6 +63,8 @@ function generateOutputYAML(entityIndex) {
 					icon: {},
 					objectType: "Structure",
 					placementMode: "SnapgridCenter",
+					agemin: entity.agemin || 8,
+					agemax: entity.agemax || 8,
 				};
 
 				const spriteComponent = entity.components.find(

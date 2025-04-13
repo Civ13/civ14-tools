@@ -3,10 +3,24 @@ const path = require("path");
 const sharp = require("sharp"); // Import sharp
 
 const consolidatedClothingDir = path.resolve("consolidated_clothing");
-
+const consolidatedItemsDir = path.resolve("consolidated_items");
 module.exports.processConsolidatedClothing = async function () {
 	// async function
 	const metaFiles = findMetaFiles(consolidatedClothingDir);
+
+	for (const metaFilePath of metaFiles) {
+		// Use for...of for async/await
+		try {
+			await updateMetaJson(metaFilePath); // await the promise
+		} catch (error) {
+			console.error(`Error processing ${metaFilePath}:`, error);
+		}
+	}
+};
+
+module.exports.processConsolidatedItems = async function () {
+	// async function
+	const metaFiles = findMetaFiles(consolidatedItemsDir);
 
 	for (const metaFilePath of metaFiles) {
 		// Use for...of for async/await

@@ -1,4 +1,4 @@
-import yaml from "./js-yaml.min.js";
+import yaml from "js-yaml";
 import fs from "node:fs";
 
 export function newGraph(_id, _material, _amount, _timer) {

@@ -31,6 +31,6 @@ Place the input files in `input/`
 
 Converts an image into a Civ14 Nomads' map. Colors must match the indexed color list, and be 1 pixel per tile.
 
-## [ss14-tileset-converter](https://github.com/Civ13/SS14TilesetConverter)
+## [ss14-tileset-converter](https://github.com/space-wizards/RSIEdit)
 
-This project provides a PHP library for converting images specifically for the SS14 game. It includes functionality to transform images and generate corresponding JSON metadata.
+RSIEdit is a GUI application for creating and editing RSI files and converting existing DMI files to the RSI format.

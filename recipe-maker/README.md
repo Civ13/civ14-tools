@@ -1,7 +1,7 @@
 # recipe-maker
 
 Reads civ14's ymls and generates crafting recipes for them.
-Place the input files in `input/`. Make sure they have the details (construction time, cost, material) in the `Construction` component, example below:
+Place the input files in `input/`. Make sure they have the details (construction time, cost, material, agemin, agemax) in the `Construction` component, example below:
 
 ```
 -   type: Construction
@@ -10,4 +10,6 @@ Place the input files in `input/`. Make sure they have the details (construction
      cost: 5
      material: Straw
      time: 10
+     agemin: 0
+     agemax: 8
 ```
