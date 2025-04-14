@@ -13,29 +13,23 @@ const mobSubfolders = ["belts.rsi", "back.rsi"];
 
 const inhandSubfolders = [
 	"lefthand_guns.rsi",
-	"lefthand_magic.rsi",
 	"lefthand_weapons.rsi",
 	"righthand_guns.rsi",
-	"righthand_magic.rsi",
 	"righthand_weapons.rsi",
 ];
 
 const inhandFolderToType = {
 	"lefthand_guns.rsi": "inhand-left.png",
-	"lefthand_magic.rsi": "inhand-left.png",
 	"lefthand_weapons.rsi": "inhand-left.png",
 	"righthand_guns.rsi": "inhand-right.png",
-	"righthand_magic.rsi": "inhand-right.png",
 	"righthand_weapons.rsi": "inhand-right.png",
 };
 
 const inhandFolderToConsolidated = {
-	"lefthand_guns.rsi": "weapons.rsi",
-	"lefthand_magic.rsi": "magic.rsi",
-	"lefthand_weapons.rsi": "weapons.rsi",
-	"righthand_guns.rsi": "weapons.rsi",
-	"righthand_magic.rsi": "magic.rsi",
-	"righthand_weapons.rsi": "weapons.rsi",
+	"lefthand_guns.rsi": "guns",
+	"lefthand_weapons.rsi": "weapons",
+	"righthand_guns.rsi": "guns",
+	"righthand_weapons.rsi": "weapons",
 };
 
 if (!fs.existsSync(outputDir)) {
@@ -101,7 +95,7 @@ function processMetaFile(metaFilePath, relDir) {
 				outputDir,
 				parsedClass,
 				relativePath,
-				imageNameWithoutExtension + ".rsi"
+				imageNameWithoutExtension
 			);
 
 			if (!fs.existsSync(imageOutputDir)) {
@@ -110,7 +104,7 @@ function processMetaFile(metaFilePath, relDir) {
 			const newImagePath2 = path.join(imageOutputDir, imageFileName);
 			const newImagePath = path.join(imageOutputDir, "icon.png");
 			fs.copyFileSync(imagePath, newImagePath);
-			//fs.copyFileSync(imagePath, newImagePath2);
+			fs.copyFileSync(imagePath, newImagePath2);
 			console.log(`Copied ${imagePath} to ${newImagePath}`);
 
 			const newMetaFilePath = path.join(imageOutputDir, "meta.json");
@@ -379,7 +373,7 @@ function processInhandSprites() {
 	}
 }
 
-//processItemDirectory(itemsDir);
+processItemDirectory(itemsDir);
 processItemDirectory(weaponsDir);
 processItemDirectory(gunsDir);
 findAndCopyMobFiles();

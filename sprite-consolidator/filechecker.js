@@ -25,6 +25,7 @@ module.exports.processConsolidatedItems = async function () {
 	for (const metaFilePath of metaFiles) {
 		// Use for...of for async/await
 		try {
+			console.log(`Processing ${metaFilePath}`);
 			await updateMetaJson(metaFilePath); // await the promise
 		} catch (error) {
 			console.error(`Error processing ${metaFilePath}:`, error);
