@@ -274,11 +274,10 @@ for pos_str, tile_info in tilemap_data.items():
     # Os IDs do JSON correspondem diretamente ao TILEMAP
     tile_map[y, x] = tile_id
 
-# Define o diretório de saída
 output_dir = os.path.join(script_dir, "output")
 os.makedirs(output_dir, exist_ok=True)
 
-# Salva o mapa em YAML
+# Saves the map as YAML
 save_map_to_yaml(tile_map, output_dir, filename="nomads_from_json.yml", chunk_size=16)
 
-print("Mapa gerado a partir do JSON e salvo com sucesso!")
+print("Map generated from JSON successfully!")

@@ -175,6 +175,7 @@ function convertToSS14(
 				},
 				{
 					type: "Construction",
+					graph: _id,
 					node: "end",
 				},
 			],

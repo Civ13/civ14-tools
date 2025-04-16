@@ -1,0 +1,74 @@
+{
+    "0": {
+        "index": 0,
+        "color": "#5a94c0",
+        "tile": "FloorSand",
+        "entities": [
+            "FloorWaterDeepEntity"
+        ]
+    },
+    "1": {
+        "index": 1,
+        "color": "#9aada9",
+        "tile": "FloorSand",
+        "entities": [
+            "FloorWaterEntity"
+        ]
+    },
+    "2": {
+        "index": 2,
+        "color": "#f3f1ec",
+        "tile": "FloorSnow",
+        "entities": []
+    },
+    "3": {
+        "index": 3,
+        "color": "#bfaf7d",
+        "tile": "FloorDesert",
+        "entities": []
+    },
+    "4": {
+        "index": 4,
+        "color": "#453623",
+        "tile": "FloorDirt",
+        "entities": []
+    },
+    "5": {
+        "index": 5,
+        "color": "#646464",
+        "tile": "FloorDirtRock",
+        "entities": []
+    },
+    "6": {
+        "index": 6,
+        "color": "#3a6415",
+        "tile": "FloorGrass",
+        "entities": []
+    },
+    "7": {
+        "index": 7,
+        "color": "#695532",
+        "tile": "FloorPlanetDryDirt",
+        "entities": []
+    },
+    "8": {
+        "index": 8,
+        "color": "#cbd6d8",
+        "tile": "FloorIce",
+        "entities": []
+    },
+    "9": {
+        "index": 9,
+        "color": "#92bd49",
+        "tile": "FloorDirt",
+        "entities": [
+            "FloorWaterSwampEntity"
+        ]
+    },
+    "10": {
+        "index": 10,
+        "color": "#bfb338",
+        "tile": "FloorGrassDry",
+        "entities": []
+    }
+}

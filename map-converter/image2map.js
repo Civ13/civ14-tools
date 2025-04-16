@@ -10,36 +10,17 @@
  */
 const fs = require("fs").promises;
 const { createCanvas, loadImage } = require("canvas");
-
-// Use numeric keys for globalEntityMap
-const globalEntityMap = {
-	0: "FloorWaterDeepEntity",
-	1: "FloorWaterEntity",
-	2: "FloorSnow",
-	3: "FloorDesert",
-	4: "FloorDirt",
-	5: "FloorDirtRock",
-	6: "FloorGrass",
-	7: "FloorPlanetDryDirt",
-	8: "FloorIce",
-	9: "FloorWaterSwampEntity",
-	10: "FloorGrassDry",
-};
+const keys = require("./keys.json");
 
 // colorMap should also use numeric keys
-const colorMap = {
-	"#5a94c0": 0,
-	"#9aada9": 1,
-	"#f3f1ec": 2,
-	"#bfaf7d": 3,
-	"#453623": 4,
-	"#646464": 5,
-	"#3a6415": 6,
-	"#695532": 7,
-	"#cbd6d8": 8,
-	"#92bd49": 9,
-	"#bfb338": 10,
-};
+let colorMap = {};
+
+for (var key in keys) {
+	if (keys.hasOwnProperty(key)) {
+		const hexColor = keys[key].color;
+		colorMap[hexColor] = parseInt(key);
+	}
+}
 
 async function imageToMapAndSaveJson(
 	imagePath,
@@ -88,27 +69,13 @@ async function imageToMapAndSaveJson(
 				const b = pixels[index + 2];
 				const hexColor = rgbToHex(r, g, b);
 				const tileId = colorMap[hexColor]; // Get numeric tile ID
-				//deep water, shallow water = sand
-				if (tileId == 0 || tileId == 1) {
-					tileMap[`(${x},${y})`] = {
-						tile: 3,
-						entities: [globalEntityMap[tileId]],
-					};
-					// swamp = dirt
-				} else if (tileId == 9) {
-					tileMap[`(${x},${y})`] = {
-						tile: 4,
-						entities: [globalEntityMap[tileId]],
-					};
-				} else {
-					tileMap[`(${x},${y})`] = { tile: tileId };
-				}
+				tileMap[`${x},${y}`] = tileId;
 			}
 		}
 
 		const jsonData = {
 			tileMap: tileMap, // Changed to tileMap
-			entityMap: globalEntityMap,
+			entityMap: keys,
 		};
 
 		await fs.writeFile(outputJsonPath, JSON.stringify(jsonData, null, 2));
