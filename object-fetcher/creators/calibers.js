@@ -51,7 +51,9 @@ class WeaponIndexer {
 				continue;
 			}
 			let parsedName = weapon.Variables.name.replace(/[\s-]/g, "_");
-
+			if (weapon.Variables.caliber) {
+				parsedName = weapon.Variables.caliber.replace(/[\s-]/g, "_");
+			}
 			yamlStr += yaml.dump(
 				convertToSS14(
 					weapon.Variables.name,
@@ -92,6 +94,6 @@ const indexer = new WeaponIndexer(
 );
 
 // Wait for the index to load before accessing data.  No timeout needed since it's synchronous.
-indexer.saveToYaml(path.join(__dirname, "magazines.yml"));
+indexer.saveToYaml(path.join(__dirname, "calibers.yml"));
 
 module.exports = WeaponIndexer;

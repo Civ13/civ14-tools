@@ -13,14 +13,14 @@ class WeaponIndexer {
 		try {
 			const data = fs.readFileSync(this.filePath, "utf8");
 			const jsonData = JSON.parse(data);
-			this.index = this.parseMag(jsonData);
+			this.index = this.parseBullet(jsonData);
 		} catch (err) {
 			console.error(`Error loading or parsing ${this.filePath}:`, err);
 			this.index = null;
 		}
 	}
 
-	parseMag(jsonData) {
+	parseBullet(jsonData) {
 		if (!jsonData || !jsonData.Types || !Array.isArray(jsonData.Types)) {
 			console.error("Invalid JSON data format.");
 			return {};
@@ -47,17 +47,17 @@ class WeaponIndexer {
 		let yamlStr = "";
 		for (const weaponName in this.index) {
 			const weapon = this.index[weaponName];
-			if (!weapon.Variables || !weapon.Variables.name) {
+			if (!weapon.Variables) {
 				continue;
 			}
-			let parsedName = weapon.Variables.name.replace(/[\s-]/g, "_");
-
+			let parsedName = weapon.Path.replace(
+				"/obj/item/projectile/bullet/",
+				""
+			);
+			parsedName = parsedName.replace("/", "_");
+			console.log(parsedName);
 			yamlStr += yaml.dump(
-				convertToSS14(
-					weapon.Variables.name,
-					"civ13_bullet_" + parsedName,
-					weapon.Variables
-				)
+				convertToSS14("civ13_bullet_" + parsedName, weapon.Variables)
 			);
 		}
 		fs.writeFileSync(
@@ -69,11 +69,11 @@ class WeaponIndexer {
 	}
 }
 
-function convertToSS14(_name = "", _id = "", _vars = "") {
+function convertToSS14(_id = "", _vars = "") {
 	let baseEntity = {
 		type: "entity",
 		id: _id,
-		name: _vars.name,
+		name: _id,
 		parent: "BaseBullet",
 		categories: ["HideSpawnMenu"],
 		components: [
@@ -97,6 +97,6 @@ const indexer = new WeaponIndexer(
 );
 
 // Wait for the index to load before accessing data.  No timeout needed since it's synchronous.
-indexer.saveToYaml(path.join(__dirname, "magazines.yml"));
+indexer.saveToYaml(path.join(__dirname, "bullets.yml"));
 
 module.exports = WeaponIndexer;
