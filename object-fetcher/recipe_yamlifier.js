@@ -1,7 +1,7 @@
-import yaml from "js-yaml";
-import fs from "node:fs";
+const fs = require("node:fs");
+const yaml = require("js-yaml");
 
-export function newGraph(_id, _material, _amount, _timer) {
+function newGraph(_id, _material, _amount, _timer) {
 	return [
 		{
 			type: "constructionGraph",
@@ -31,7 +31,7 @@ export function newGraph(_id, _material, _amount, _timer) {
 		},
 	];
 }
-export function newRecipe(
+function newRecipe(
 	name = "",
 	id = "",
 	desc = "",
@@ -61,13 +61,15 @@ export function newRecipe(
 	];
 }
 
-export function saveRecipe(recipe, graph, filename = "recipe.yaml") {
+function saveRecipe(recipe, graph, filename = "recipe.yaml") {
 	let yamlStr = yaml.dump(recipe) + "\n" + yaml.dump(graph);
 	fs.writeFileSync(filename, yamlStr, "utf8");
 	console.log("Saved to " + filename);
 }
-export function saveYAML(filename = "recipes.yaml", yamlStr) {
+function saveYAML(filename = "recipes.yaml", yamlStr) {
 	yamlStr = yaml.dump(yamlStr);
 	fs.writeFileSync(filename, yamlStr, "utf8");
 	console.log("Saved to " + filename);
 }
+
+module.exports = { saveYAML, saveRecipe, newRecipe, newGraph };

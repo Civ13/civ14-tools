@@ -123,3 +123,4 @@ map-converter/output.json
 map-converter/output.yml
 map-converter/output/
 map-converter/dmm-extractor/input/
+map-converter/dmm-extractor/objects.json

@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const yaml = require("js-yaml");
-const { newRecipe, newGraph } = require("./../recipe_yamlifier.js");
+const { newRecipe, newGraph } = require("../recipe_yamlifier.js");
 
 const recipeList = JSON.parse(
 	fs.readFileSync(
@@ -10,7 +10,7 @@ const recipeList = JSON.parse(
 	)
 );
 
-class BladedWeaponIndexer {
+class ShieldIndexer {
 	constructor(filePath) {
 		this.filePath = filePath;
 		this.index = null;
@@ -21,39 +21,35 @@ class BladedWeaponIndexer {
 		try {
 			const data = fs.readFileSync(this.filePath, "utf8");
 			const jsonData = JSON.parse(data);
-			this.index = this.parseBladedWeapons(jsonData);
+			this.index = this.parseShields(jsonData);
 		} catch (err) {
 			console.error(`Error loading or parsing ${this.filePath}:`, err);
 			this.index = null;
 		}
 	}
 
-	parseBladedWeapons(jsonData) {
+	parseShields(jsonData) {
 		if (!jsonData || !jsonData.Types || !Array.isArray(jsonData.Types)) {
 			console.error("Invalid JSON data format.");
 			return {};
 		}
 
-		const bladedWeapons = {};
+		const Shields = {};
 
 		jsonData.Types.forEach((weapon) => {
-			if (
-				weapon.Path.startsWith("/obj/item/weapon/material/sword/") ||
-				weapon.Path.startsWith("/obj/item/weapon/material/spear/") ||
-				weapon.Path.startsWith("/obj/item/weapon/material/pilum/")
-			) {
+			if (weapon.Path.startsWith("/obj/item/weapon/shield")) {
 				const pathParts = weapon.Path.split("/");
 				const weaponName = pathParts[pathParts.length - 1];
-				bladedWeapons[weaponName] = weapon;
+				Shields[weaponName] = weapon;
 			}
 		});
 
-		return bladedWeapons;
+		return Shields;
 	}
 
 	saveToYaml(filepath) {
 		if (this.index === null || Object.keys(this.index).length === 0) {
-			console.error("No bladed weapons found or index loading failed.");
+			console.error("No shields found or index loading failed.");
 			return;
 		}
 		let yamlStr = "";
@@ -66,7 +62,7 @@ class BladedWeaponIndexer {
 			let parsedName = weapon.Variables.name.replace(/[\s-]/g, "_");
 			let recipe = newRecipe(
 				weapon.Variables.name,
-				"civ13_sword_" + parsedName,
+				"civ13_shield_" + parsedName,
 				weapon.Variables.desc,
 				"weapons",
 				"Civ14/Weapons/" + weapon.Variables.icon_state + ".rsi",
@@ -75,7 +71,7 @@ class BladedWeaponIndexer {
 			);
 			let recipeData = findRecipe(weapon.Path, recipeList);
 			let graph = newGraph(
-				"civ13_sword_" + parsedName,
+				"civ13_shield_" + parsedName,
 				recipeData[2],
 				recipeData[0],
 				recipeData[1]
@@ -83,21 +79,21 @@ class BladedWeaponIndexer {
 			yamlStr += yaml.dump(
 				convertToSS14(
 					weapon.Variables.name,
-					"civ13_sword_" + parsedName,
+					"civ13_shield_" + parsedName,
 					weapon.Variables.desc,
 					"Civ14/Weapons/" + weapon.Variables.icon_state + ".rsi",
-					Math.round(weapon.Variables.force_divisor * 55)
+					weapon.Variables
 				)
 			);
 			yamlRecp += yaml.dump(recipe) + "\n" + yaml.dump(graph);
 		}
 		fs.writeFileSync(
-			"./../output/yml/entities_bladed.yml",
+			"./../output/yml/entities_shields.yml",
 			yamlStr,
 			"utf8"
 		);
 		fs.writeFileSync(
-			"./../output/yml/recipes_bladed.yml",
+			"./../output/yml/recipes_shields.yml",
 			yamlRecp,
 			"utf8"
 		);
@@ -143,29 +139,48 @@ function convertToSS14(
 	_id = "",
 	_desc = "",
 	_sprite = "",
-	_dmg = ""
+	_vars = ""
 ) {
+	let _parsedhealth = 60;
+	if (_vars.health) {
+		_parsedhealth = _vars.health * 2.5;
+	}
+	let _parsedblock = 0.85;
+	if (_vars.base_block_chance) {
+		_parsedblock = (100 - _vars.base_block_chance) / 100;
+	}
 	return [
 		{
 			type: "entity",
 			name: _name,
-			parent: "BaseSword",
+			parent: "WoodenBuckler",
 			id: _id,
-			description: _desc,
+			description: "A shield. Blocks melee damage.",
 			components: [
 				{
 					type: "Sprite",
 					sprite: _sprite,
 				},
 				{
-					type: "MeleeWeapon",
-					damage: {
-						types: {
-							Slash: _dmg,
+					type: "Blocking",
+					passiveBlockModifier: {
+						coefficients: {
+							Blunt: _parsedblock.toFixed(3),
+							Slash: _parsedblock.toFixed(3),
+							Piercing: _parsedblock.toFixed(3),
 						},
 					},
-					soundHit: {
-						path: "/Audio/Weapons/bladeslice.ogg",
+					activeBlockModifier: {
+						coefficients: {
+							Blunt: (_parsedblock * 0.88).toFixed(3),
+							Slash: (_parsedblock * 0.88).toFixed(3),
+							Piercing: (_parsedblock * 0.88).toFixed(3),
+						},
+						flatReductions: {
+							Blunt: 1,
+							Slash: 1,
+							Piercing: 1,
+						},
 					},
 				},
 				{
@@ -173,7 +188,19 @@ function convertToSS14(
 					sprite: _sprite,
 				},
 				{
-					type: "DisarmMalus",
+					type: "Destructible",
+					thresholds: [
+						{
+							trigger: {
+								damage: _parsedhealth,
+							},
+							behaviors: [
+								{
+									acts: ["Destruction"],
+								},
+							],
+						},
+					],
 				},
 				{
 					type: "Construction",
@@ -186,11 +213,11 @@ function convertToSS14(
 }
 
 // Example usage:
-const indexer = new BladedWeaponIndexer(
+const indexer = new ShieldIndexer(
 	path.join(__dirname, "./../output/civ13_item.json")
 );
 
 // Wait for the index to load before accessing data.  No timeout needed since it's synchronous.
-indexer.saveToYaml(path.join(__dirname, "bladed_weapons.yml"));
+indexer.saveToYaml(path.join(__dirname, "shields.yml"));
 
-module.exports = BladedWeaponIndexer;
+module.exports = ShieldIndexer;
