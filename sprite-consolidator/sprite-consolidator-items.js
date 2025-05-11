@@ -373,10 +373,5 @@ function processInhandSprites() {
 	}
 }
 
-processItemDirectory(itemsDir);
-processItemDirectory(weaponsDir);
-processItemDirectory(gunsDir);
-findAndCopyMobFiles();
-processInhandSprites();
 processConsolidatedItems();
 console.log("Clothing and Mob consolidation complete.");
